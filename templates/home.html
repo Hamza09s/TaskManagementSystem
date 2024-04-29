@@ -1,16 +1,72 @@
 {% extends "base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Task Management{% endblock %}
 
 {% block content %}
-    {% if user.is_authenticated %}
-        <p>Hi {{ user.username }}!</p>
-        <form method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button type="submit">logout</button>
-        </form>
-    {% else %}
-        <p>You are not logged in</p>
-        <p><a href="{% url 'login' %}">Log In</a> | <a href="{% url 'signup' %}">Sign Up</a></p>
-    {% endif %}
+{% if user.is_authenticated %}
+<p>Hi {{ user.username }}!</p>
+
+<h2>Task List</h2>
+
+<a href="{% url 'task-create' %}" class="btn btn-primary mb-3">Create New Task</a>
+
+<!-- Filter by status -->
+<form method="get" action="{% url 'task-list' %}">
+    <label for="status">Filter by Status:</label>
+    <select name="status" id="status">
+        <option value="">All</option>
+        <option value="TODO">To Do</option>
+        <option value="IN_PROGRESS">In Progress</option>
+        <option value="COMPLETED">Completed</option>
+    </select>
+    <button type="submit">Filter</button>
+</form>
+
+<!-- Table with sorting -->
+<table id="task-table" class="display">
+    <thead>
+        <tr>
+            <th><a href="{% url 'task-list' %}?sortby=title">Title</a></th>
+            <th><a href="{% url 'task-list' %}?sortby=description">Description</a></th>
+            <th><a href="{% url 'task-list' %}?sortby=status"?>Status</a></th>
+            <th><a href="{% url 'task-list' %}?sortby=due_date">Due Date</a></th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.title }}</td>
+            <td>{{ task.description }}</td>
+            <td>{{ task.status }}</td>
+            <td>{{ task.due_date }}</td>
+            <td>
+                <a href="{% url 'task-update' task.pk %}" class="btn btn-primary btn-sm">Update</a>
+                <a href="{% url 'task-delete' task.pk %}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Logout</button>
+</form>
+{% else %}
+<p>You are not logged in</p>
+<p><a href="{% url 'login' %}">Log In</a> | <a href="{% url 'signup' %}">Sign Up</a></p>
+{% endif %}
 {% endblock %}
+
+
+<script>
+    $(document).ready(function () {
+        $('#task-table').DataTable({
+            "paging": true,
+            "ordering": true,
+            "searching": true
+        });
+    });
+</script>
+
+
